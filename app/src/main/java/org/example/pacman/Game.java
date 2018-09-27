@@ -59,14 +59,46 @@ public class Game {
         this.w = w;
     }
 
+    public void movePacmanUp(int pixels)
+    {
+        if (boundariesCheck(pixels)) {
+            pacy = pacy - pixels;
+            doCollisionCheck();
+            gameView.invalidate();
+        }
+    }
+
     public void movePacmanRight(int pixels)
     {
-        //still within our boundaries?
-        if (pacx+pixels+pacBitmap.getWidth()<w) {
+        if (boundariesCheck(pixels)) {
             pacx = pacx + pixels;
             doCollisionCheck();
             gameView.invalidate();
         }
+    }
+
+    public void movePacmanLeft(int pixels)
+    {
+        if (boundariesCheck(pixels)) {
+            pacx = pacx - pixels;
+            doCollisionCheck();
+            gameView.invalidate();
+        }
+    }
+
+    public void movePacmanDown(int pixels)
+    {
+        if (boundariesCheck(pixels)) {
+            pacy = pacy + pixels;
+            doCollisionCheck();
+            gameView.invalidate();
+        }
+    }
+
+    public boolean boundariesCheck(int pixels)
+    {
+       // return pacy+pixels+pacBitmap.getHeight()<h && pacx+pixels+pacBitmap.getWidth()<w;
+        return true;
     }
 
     //TODO check if the pacman touches a gold coin

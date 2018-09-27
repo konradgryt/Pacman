@@ -34,6 +34,15 @@ public class MainActivity extends AppCompatActivity {
 
         game.newGame();
 
+        Button buttonUp = findViewById(R.id.moveUp);
+        buttonUp.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                game.movePacmanUp(10);
+            }
+        });
+
         Button buttonRight = findViewById(R.id.moveRight);
         //listener of our pacman, when somebody clicks it
         buttonRight.setOnClickListener(new View.OnClickListener() {
@@ -44,6 +53,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button buttonDown = findViewById(R.id.moveDown);
+        buttonDown.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                game.movePacmanDown(10);
+            }
+        });
+
+        Button buttonLeft = findViewById(R.id.moveLeft);
+        buttonLeft.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                game.movePacmanLeft(10);
+            }
+        });
 
     }
 
