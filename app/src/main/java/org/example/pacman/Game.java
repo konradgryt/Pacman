@@ -3,6 +3,7 @@ package org.example.pacman;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.widget.TextView;
 
 
@@ -14,6 +15,9 @@ import java.util.ArrayList;
  */
 
 public class Game {
+
+    private Thread activeThread;
+
     //context is a reference to the activity
     private Context context;
     private int points = 0; //how points do we have
@@ -59,45 +63,49 @@ public class Game {
         this.w = w;
     }
 
-    public void movePacmanUp(int pixels)
+    public void movePacman(int pixels, Direction direction)
     {
-        if (boundariesCheck(pixels)) {
-            pacy = pacy - pixels;
-            doCollisionCheck();
-            gameView.invalidate();
-        }
+            if (activeThread == null) {
+                activeThread = new Thread(new InputThread(pixels, direction));
+                activeThread.start();
+            } else {
+                activeThread.interrupt();
+                activeThread = new Thread(new InputThread(pixels, direction));
+                activeThread.start();
+            }
     }
 
-    public void movePacmanRight(int pixels)
-    {
-        if (boundariesCheck(pixels)) {
-            pacx = pacx + pixels;
-            doCollisionCheck();
-            gameView.invalidate();
-        }
-    }
-
-    public void movePacmanLeft(int pixels)
-    {
-        if (boundariesCheck(pixels)) {
-            pacx = pacx - pixels;
-            doCollisionCheck();
-            gameView.invalidate();
-        }
-    }
-
-    public void movePacmanDown(int pixels)
-    {
-        if (boundariesCheck(pixels)) {
-            pacy = pacy + pixels;
-            doCollisionCheck();
-            gameView.invalidate();
-        }
-    }
+//    public void movePacmanUp(int pixels)
+//    {
+//        Thread t = new Thread(new InputThread(pixels, Direction.UP));
+//        t.start();
+//    }
+//
+//    public void movePacmanRight(int pixels)
+//    {
+//        Thread t = new Thread(new InputThread(pixels, Direction.RIGHT));
+//        t.start();
+//    }
+//
+//    public void movePacmanLeft(int pixels)
+//    {
+//        Thread t = new Thread(new InputThread(pixels, Direction.LEFT));
+//        t.start();
+//    }
+//
+//    public void movePacmanDown(int pixels)
+//    {
+//        Thread t = new Thread(new InputThread(pixels, Direction.DOWN));
+//        t.start();
+//    }
 
     public boolean boundariesCheck(int pixels)
     {
-       // return pacy+pixels+pacBitmap.getHeight()<h && pacx+pixels+pacBitmap.getWidth()<w;
+        String currentWidth =  Integer.toString(pacx+pixels+pacBitmap.getWidth());
+        String currentHeight = Integer.toString(pacy+pixels+pacBitmap.getHeight());
+        Log.d("currw", currentWidth);
+        Log.d("currh", currentHeight);
+        //return pacy+pixels+pacBitmap.getHeight() < this.h && pacx+pixels+pacBitmap.getWidth() < this.w;
         return true;
     }
 
@@ -136,5 +144,53 @@ public class Game {
         return pacBitmap;
     }
 
+    private class InputThread implements Runnable {
+        int pixels;
+        Direction direction;
+
+        InputThread(int pixels, Direction direction){
+            this.pixels = pixels;
+            this.direction = direction;
+        }
+
+        public void run() {
+            try {
+                if (direction.equals(Direction.UP)) {
+                    while (true) {
+                        Thread.sleep(10);
+                        pacy = pacy - pixels;
+                        doCollisionCheck();
+                        gameView.invalidate();
+                    }
+                }
+                else if (direction.equals(Direction.RIGHT)) {
+                    while (true) {
+                        Thread.sleep(10);
+                        pacx = pacx + pixels;
+                        doCollisionCheck();
+                        gameView.invalidate();
+                    }
+                }
+                else if (direction.equals(Direction.DOWN)) {
+                    while (true) {
+                        Thread.sleep(10);
+                        pacy = pacy + pixels;
+                        doCollisionCheck();
+                        gameView.invalidate();
+                    }
+                }
+                else if (direction.equals(Direction.LEFT)) {
+                    while (true) {
+                        Thread.sleep(10);
+                        pacx = pacx - pixels;
+                        doCollisionCheck();
+                        gameView.invalidate();
+                    }
+                }
+            } catch (InterruptedException e) {
+
+            }
+        }
+    }
 
 }

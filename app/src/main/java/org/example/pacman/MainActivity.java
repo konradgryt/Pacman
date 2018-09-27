@@ -27,53 +27,23 @@ public class MainActivity extends AppCompatActivity {
         gameView =  findViewById(R.id.gameView);
         TextView textView = findViewById(R.id.points);
 
-
         game = new Game(this,textView);
         game.setGameView(gameView);
         gameView.setGame(game);
-
         game.newGame();
 
         Button buttonUp = findViewById(R.id.moveUp);
-        buttonUp.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                game.movePacmanUp(10);
-            }
-        });
+        buttonUp.setOnClickListener((v) -> game.movePacman(1, Direction.UP));
 
         Button buttonRight = findViewById(R.id.moveRight);
-        //listener of our pacman, when somebody clicks it
-        buttonRight.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                game.movePacmanRight(10);
-            }
-        });
+        buttonRight.setOnClickListener((v) -> game.movePacman(1, Direction.RIGHT));
 
         Button buttonDown = findViewById(R.id.moveDown);
-        buttonDown.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                game.movePacmanDown(10);
-            }
-        });
+        buttonDown.setOnClickListener((v) -> game.movePacman(1, Direction.DOWN));
 
         Button buttonLeft = findViewById(R.id.moveLeft);
-        buttonLeft.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                game.movePacmanLeft(10);
-            }
-        });
-
+        buttonLeft.setOnClickListener((v) -> game.movePacman(1, Direction.LEFT));
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
