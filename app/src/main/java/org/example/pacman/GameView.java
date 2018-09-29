@@ -9,10 +9,13 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import java.util.ArrayList;
+
 public class GameView extends View {
 
 	Game game;
     int h,w; //used for storing our height and width of the view
+
 
 	public void setGame(Game game)
 	{
@@ -54,8 +57,11 @@ public class GameView extends View {
 
 		//draw the pacman
 		canvas.drawBitmap(game.getPacBitmap(), game.getPacx(),game.getPacy(), paint);
-		//TODO loop through the list of goldcoins and draw them.
-		super.onDraw(canvas);
+ 		super.onDraw(canvas);
+		ArrayList<GoldCoin> coins = game.getCoins();
+		for (int i = 0; i < coins.size(); i++) {
+			canvas.drawBitmap(game.getCoinBitmap(), coins.get(i).getCoinx(), coins.get(i).getCoiny(), paint);
+		}
 	}
 
 }

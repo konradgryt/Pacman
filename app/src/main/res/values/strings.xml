@@ -2,7 +2,7 @@
     <string name="app_name">Pacman</string>
     <string name="points">Points:</string>
     <string name="move_up">Move Up</string>
-    <string name="move_right">Move Rigth</string>
+    <string name="move_right">Move Right</string>
     <string name="move_down">Move Down</string>
     <string name="move_left">Move Left</string>
     <string name="action_settings">Settings</string>
