@@ -58,10 +58,15 @@ public class GameView extends View {
 		//draw the pacman
 		canvas.drawBitmap(game.getPacBitmap(), game.getPacx(),game.getPacy(), paint);
  		super.onDraw(canvas);
+ 		game.initializeCoins(10, w, h);
 		ArrayList<GoldCoin> coins = game.getCoins();
 		for (int i = 0; i < coins.size(); i++) {
-			canvas.drawBitmap(game.getCoinBitmap(), coins.get(i).getCoinx(), coins.get(i).getCoiny(), paint);
+			if (!coins.get(i).isCollected()) {
+				canvas.drawBitmap(game.getCoinBitmap(), coins.get(i).getCoinx(), coins.get(i).getCoiny(), paint);
+			}
 		}
+		game.doCollisionCheck();
+		game.updatePoints();
 	}
 
 }

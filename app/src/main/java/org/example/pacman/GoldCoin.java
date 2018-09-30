@@ -29,4 +29,7 @@ public class GoldCoin {
         return coiny;
     }
 
+    public boolean isCollected() {
+        return collected;
+    }
 }

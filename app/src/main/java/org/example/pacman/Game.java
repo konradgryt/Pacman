@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.TextView;
 import java.util.Random;
-
 import java.util.ArrayList;
 
 /**
@@ -17,6 +16,9 @@ import java.util.ArrayList;
 public class Game {
 
     private Thread activeThread;
+    private boolean coinsInitializedFlag = false;
+    private Direction direction = Direction.IDLE;
+    public int pixels = 1;
 
     //context is a reference to the activity
     private Context context;
@@ -49,19 +51,22 @@ public class Game {
         this.gameView = view;
     }
 
-    //TODO initialize goldcoins also here
     public void newGame()
     {
         pacx = 50;
-        pacy = 400; //just some starting coordinates
-        initializeCoins(3);
-        //reset the points
+        pacy = 400;
         points = 0;
-        pointsView.setText(context.getResources().getString(R.string.points)+" "+points);
-        gameView.invalidate(); //redraw screen
+        Thread t =  new Thread(new InputThread());
+        t.start();
+        pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
+        gameView.invalidate();
     }
 
-    public int randomx(int x)
+    public void updatePoints() {
+        pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
+    }
+
+    public int random(int x)
     {
         Random rand = new Random();
 
@@ -69,23 +74,15 @@ public class Game {
         return n;
     }
 
-    public int randomy(int y)
-    {
-        Random rand = new Random();
 
-        int  n = rand.nextInt(y);
-        return n;
-    }
-
-    public void initializeCoins(int count)
+    public void initializeCoins(int count, int x, int y)
     {
-        for (int i = 0; i < count; i++) {
-            GoldCoin coin = new GoldCoin(55,  200);
-            GoldCoin coin2 = new GoldCoin(120,  88);
-            GoldCoin coin3 = new GoldCoin(355,  220);
-            coins.add(coin);
-            coins.add(coin2);
-            coins.add(coin3);
+
+        if (!coinsInitializedFlag) {
+            for (int i = 0; i < count; i++) {
+                coins.add(new GoldCoin(random(x), random(y)));
+            }
+            coinsInitializedFlag = true;
         }
     }
 
@@ -95,37 +92,21 @@ public class Game {
         this.w = w;
     }
 
-    public void movePacman(int pixels, Direction direction)
+    public void changeDirection(Direction direction)
     {
-            if (activeThread == null) {
-                activeThread = new Thread(new InputThread(pixels, direction));
-                activeThread.start();
-            } else {
-                activeThread.interrupt();
-                activeThread = new Thread(new InputThread(pixels, direction));
-                activeThread.start();
-            }
+        this.direction = direction;
     }
 
-//    public boolean boundariesCheck(int pixels)
-//    {
-//        String currentWidth =  Integer.toString(pacx+pixels+pacBitmap.getWidth());
-//        String currentHeight = Integer.toString(pacy+pixels+pacBitmap.getHeight());
-//        Log.d("currw", currentWidth);
-//        Log.d("currh", currentHeight);
-//        //return pacy+pixels+pacBitmap.getHeight() < this.h && pacx+pixels+pacBitmap.getWidth() < this.w;
-//        return true;
-//    }
-
-    //TODO check if the pacman touches a gold coin
-    //and if yes, then update the neccesseary data
-    //for the gold coins and the points
-    //so you need to go through the arraylist of goldcoins and
-    //check each of them for a collision with the pacman
     public void doCollisionCheck()
     {
-
+        for (int i = 0; i < getCoins().size(); i++) {
+            if (!getCoins().get(i).isCollected() && Math.abs(getCoins().get(i).getCoinx() - getPacx()) < 140 && Math.abs(getCoins().get(i).getCoiny() - getPacy()) < 140) {
+                getCoins().get(i).handleCollection();
+                points++;
+            }
+         }
     }
+
 
     public int getPacx()
     {
@@ -157,49 +138,34 @@ public class Game {
         return coinBitmap;
     }
 
-    private class InputThread implements Runnable {
-        int pixels;
-        Direction direction;
+    private class InputThread extends Thread {
+        public InputThread() {
 
-        InputThread(int pixels, Direction direction){
-            this.pixels = pixels;
-            this.direction = direction;
         }
-
         public void run() {
             try {
-                if (direction.equals(Direction.UP)) {
-                    while (getPacy() - pixels > 0) {
-                        Thread.sleep(5);
+                while (true) {
+                    Thread.sleep(1);
+                    if (getPacy() - pixels > 0 && direction.equals(Direction.UP)) {
                         pacy = pacy - pixels;
-                        doCollisionCheck();
                         gameView.invalidate();
                     }
-                }
-                else if (direction.equals(Direction.RIGHT)) {
-                    while (getPacx() + pixels + getPacBitmap().getWidth() < w) {
-                        Thread.sleep(5);
+                    else if (getPacx() + pixels + getPacBitmap().getWidth() < w &&direction.equals(Direction.RIGHT)) {
                         pacx = pacx + pixels;
-                        doCollisionCheck();
                         gameView.invalidate();
                     }
-                }
-                else if (direction.equals(Direction.DOWN)) {
-                    while (getPacy() + pixels + getPacBitmap().getHeight() < h) {
-                        Thread.sleep(5);
+                    else if (getPacy() + pixels + getPacBitmap().getHeight() < h && direction.equals(Direction.DOWN)) {
                         pacy = pacy + pixels;
-                        doCollisionCheck();
                         gameView.invalidate();
                     }
-                }
-                else if (direction.equals(Direction.LEFT)) {
-                    while (getPacx() - pixels > 0) {
-                        Thread.sleep(5);
+                    else if (getPacx() - pixels > 0 && direction.equals(Direction.LEFT)) {
                         pacx = pacx - pixels;
-                        doCollisionCheck();
                         gameView.invalidate();
+                    } else {
+                        direction = Direction.IDLE;
                     }
                 }
+
             } catch (InterruptedException e) {
 
             }

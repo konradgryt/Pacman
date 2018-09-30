@@ -32,17 +32,20 @@ public class MainActivity extends AppCompatActivity {
         gameView.setGame(game);
         game.newGame();
 
+//        Button buttonNewGame = findViewById(R.id.action_newGame);
+//        buttonNewGame.setOnClickListener((v) -> game.newGame());
+
         Button buttonUp = findViewById(R.id.moveUp);
-        buttonUp.setOnClickListener((v) -> game.movePacman(1, Direction.UP));
+        buttonUp.setOnClickListener((v) -> game.changeDirection(Direction.UP));
 
         Button buttonRight = findViewById(R.id.moveRight);
-        buttonRight.setOnClickListener((v) -> game.movePacman(1, Direction.RIGHT));
+        buttonRight.setOnClickListener((v) -> game.changeDirection(Direction.RIGHT));
 
         Button buttonDown = findViewById(R.id.moveDown);
-        buttonDown.setOnClickListener((v) -> game.movePacman(1, Direction.DOWN));
+        buttonDown.setOnClickListener((v) -> game.changeDirection(Direction.DOWN));
 
         Button buttonLeft = findViewById(R.id.moveLeft);
-        buttonLeft.setOnClickListener((v) -> game.movePacman(1, Direction.LEFT));
+        buttonLeft.setOnClickListener((v) -> game.changeDirection(Direction.LEFT));
     }
 
     @Override
