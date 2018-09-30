@@ -17,7 +17,9 @@ import java.util.ArrayList;
 public class Game {
 
     private boolean coinsInitializedFlag = false;
-    private Direction direction = Direction.IDLE;
+    private boolean wallsInitializedFlag = false;
+
+    private Direction direction;
     public int pixels = 1;
 
     //context is a reference to the activity
@@ -26,13 +28,20 @@ public class Game {
 
     //bitmap of the pacman
     private Bitmap pacBitmap;
+    private Bitmap enemyBitmap;
     private Bitmap coinBitmap;
-
+    private Bitmap wallBitmap;
+    private Thread thread;
+    private Thread enemyThread;
     //textview reference to points
     private TextView pointsView;
     private int pacx, pacy;
+    private  int enemyx, enemyy;
     //the list of goldcoins - initially empty
     private ArrayList<GoldCoin> coins = new ArrayList<>();
+
+    private ArrayList<GoldCoin> walls = new ArrayList<>();
+
     //a reference to the gameview
     private GameView gameView;
     private int h,w; //height and width of screen
@@ -41,9 +50,11 @@ public class Game {
     {
         this.context = context;
         this.pointsView = view;
+
         pacBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman);
         coinBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold);
-
+        enemyBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.bird);
+        wallBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.wall);
     }
 
     public void setGameView(GameView view)
@@ -51,14 +62,27 @@ public class Game {
         this.gameView = view;
     }
 
+    public void death() {
+        thread.interrupt();
+        enemyThread.interrupt();
+        newGame();
+    }
+
     public void newGame()
     {
+        thread = new Thread(new InputThread());
+        enemyThread = new Thread(new EnemyThread());
+        thread.start();
+        enemyThread.start();
         coinsInitializedFlag = false;
+        wallsInitializedFlag = false;
         pacx = 50;
         pacy = 400;
+        enemyx = 800;
+        enemyy = 0;
+        direction = Direction.IDLE;
+        coins = new ArrayList<>();
         points = 0;
-        Thread t =  new Thread(new InputThread());
-        t.start();
         pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
         gameView.invalidate();
     }
@@ -75,7 +99,6 @@ public class Game {
         return n;
     }
 
-
     public void initializeCoins(int count, int x, int y)
     {
 
@@ -84,6 +107,18 @@ public class Game {
                 coins.add(new GoldCoin(random(x), random(y)));
             }
             coinsInitializedFlag = true;
+        }
+    }
+
+    public void initializeWalls()
+    {
+        if (!wallsInitializedFlag) {
+                walls.add(new GoldCoin(0, 0));
+                walls.add(new GoldCoin(80, 0));
+                walls.add(new GoldCoin(160, 0));
+                walls.add(new GoldCoin(0,  80));
+                walls.add(new GoldCoin(80, 80));
+            wallsInitializedFlag = true;
         }
     }
 
@@ -100,15 +135,35 @@ public class Game {
 
     public void doCollisionCheck()
     {
+        Rect pacman = new Rect(getPacx(), getPacy(), getPacx() + pacBitmap.getWidth(), getPacy() + pacBitmap.getHeight());
+        Rect enemy = new Rect(getEnemyx(), getEnemyy(), getEnemyx() + enemyBitmap.getWidth(), getEnemyy() + enemyBitmap.getHeight());
+        if (Rect.intersects(enemy,pacman)) {
+            death();
+        }
+        for (int i = 0; i < getWalls().size(); i++) {
+            Rect wall = new Rect(getWalls().get(i).getCoinx(), getWalls().get(i).getCoiny(), getWalls().get(i).getCoinx() + coinBitmap.getWidth(), getWalls().get(i).getCoiny() + coinBitmap.getHeight());
+            if (Rect.intersects(wall,pacman)) {
+                direction = Direction.IDLE;
+            }
+        }
         for (int i = 0; i < getCoins().size(); i++) {
             Rect coin = new Rect(getCoins().get(i).getCoinx(), getCoins().get(i).getCoiny(), getCoins().get(i).getCoinx() + coinBitmap.getWidth(), getCoins().get(i).getCoiny() + coinBitmap.getHeight());
-            Rect pacman = new Rect(getPacx(), getPacy(), getPacx() + pacBitmap.getWidth(), getPacy() + pacBitmap.getHeight());
 
             if (!getCoins().get(i).isCollected() && Rect.intersects(coin,pacman)) {
                 getCoins().get(i).handleCollection();
                 points++;
             }
          }
+    }
+
+    public int getEnemyx()
+    {
+        return enemyx;
+    }
+
+    public int getEnemyy()
+    {
+        return enemyy;
     }
 
 
@@ -132,44 +187,74 @@ public class Game {
         return coins;
     }
 
+    public ArrayList<GoldCoin> getWalls()
+    {
+        return walls;
+    }
+
     public Bitmap getPacBitmap()
     {
         return pacBitmap;
     }
-
+    public Bitmap getEnemyBitmap()
+    {
+        return enemyBitmap;
+    }
     public Bitmap getCoinBitmap()
     {
         return coinBitmap;
     }
+    public Bitmap getWallBitmap()
+    {
+        return wallBitmap;
+    }
 
     private class InputThread extends Thread {
-        public InputThread() {
-
-        }
         public void run() {
             try {
                 while (true) {
                     Thread.sleep(1);
                     if (getPacy() - pixels > 0 && direction.equals(Direction.UP)) {
                         pacy = pacy - pixels;
-                        gameView.invalidate();
                     }
-                    else if (getPacx() + pixels + getPacBitmap().getWidth() < w &&direction.equals(Direction.RIGHT)) {
+                    else if (getPacx() + pixels + getPacBitmap().getWidth() < w && direction.equals(Direction.RIGHT)) {
                         pacx = pacx + pixels;
-                        gameView.invalidate();
                     }
                     else if (getPacy() + pixels + getPacBitmap().getHeight() < h && direction.equals(Direction.DOWN)) {
                         pacy = pacy + pixels;
-                        gameView.invalidate();
                     }
                     else if (getPacx() - pixels > 0 && direction.equals(Direction.LEFT)) {
                         pacx = pacx - pixels;
-                        gameView.invalidate();
                     } else {
                         direction = Direction.IDLE;
                     }
+                    gameView.invalidate();
                 }
+            } catch (InterruptedException e) {
 
+            }
+        }
+    }
+
+    private class EnemyThread extends Thread {
+        public void run() {
+            try {
+                while (true) {
+                    Thread.sleep(50);
+                    if (pacy < enemyy) {
+                        enemyy--;
+                    }
+                    if (pacy > enemyy) {
+                        enemyy++;
+                    }
+                    if (pacx < enemyx) {
+                        enemyx--;
+                    }
+                    if (pacx > enemyx) {
+                        enemyx++;
+                    }
+                    gameView.invalidate();
+                }
             } catch (InterruptedException e) {
 
             }

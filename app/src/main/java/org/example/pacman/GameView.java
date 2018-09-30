@@ -46,8 +46,8 @@ public class GameView extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		//Here we get the height and weight
-		h = canvas.getHeight();
-		w = canvas.getWidth();
+		h = getHeight();
+		w = getWidth();
 		//update the size for the canvas to the game.
 		game.setSize(h,w);
 		Log.d("GAMEVIEW","h = "+h+", w = "+w);
@@ -55,18 +55,23 @@ public class GameView extends View {
 		Paint paint = new Paint();
 		canvas.drawColor(Color.WHITE); //clear entire canvas to white color
 
-		//draw the pacman
 		canvas.drawBitmap(game.getPacBitmap(), game.getPacx(),game.getPacy(), paint);
- 		super.onDraw(canvas);
- 		game.initializeCoins(10, w, h);
+		canvas.drawBitmap(game.getEnemyBitmap(), game.getEnemyx(),game.getEnemyy(), paint);
+		game.initializeCoins(10, w, h);
+		game.initializeWalls();
+		game.doCollisionCheck();
 		ArrayList<GoldCoin> coins = game.getCoins();
 		for (int i = 0; i < coins.size(); i++) {
 			if (!coins.get(i).isCollected()) {
 				canvas.drawBitmap(game.getCoinBitmap(), coins.get(i).getCoinx(), coins.get(i).getCoiny(), paint);
 			}
 		}
-		game.doCollisionCheck();
+		ArrayList<GoldCoin> walls = game.getWalls();
+		for (int i = 0; i < walls.size(); i++) {
+            canvas.drawBitmap(game.getWallBitmap(), walls.get(i).getCoinx(), walls.get(i).getCoiny(), paint);
+		}
 		game.updatePoints();
+ 		super.onDraw(canvas);
 	}
 
 }

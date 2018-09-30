@@ -12,12 +12,10 @@ import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
-    //reference to the main view
     GameView gameView;
-    //reference to the game class.
     Game game;
 
-    private void setupGame() {
+    public void setupGame() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
