@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.TextView;
+import android.graphics.Rect;
 import java.util.Random;
 import java.util.ArrayList;
 
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 
 public class Game {
 
-    private Thread activeThread;
     private boolean coinsInitializedFlag = false;
     private Direction direction = Direction.IDLE;
     public int pixels = 1;
@@ -53,6 +53,7 @@ public class Game {
 
     public void newGame()
     {
+        coinsInitializedFlag = false;
         pacx = 50;
         pacy = 400;
         points = 0;
@@ -100,7 +101,10 @@ public class Game {
     public void doCollisionCheck()
     {
         for (int i = 0; i < getCoins().size(); i++) {
-            if (!getCoins().get(i).isCollected() && Math.abs(getCoins().get(i).getCoinx() - getPacx()) < 140 && Math.abs(getCoins().get(i).getCoiny() - getPacy()) < 140) {
+            Rect coin = new Rect(getCoins().get(i).getCoinx(), getCoins().get(i).getCoiny(), getCoins().get(i).getCoinx() + coinBitmap.getWidth(), getCoins().get(i).getCoiny() + coinBitmap.getHeight());
+            Rect pacman = new Rect(getPacx(), getPacy(), getPacx() + pacBitmap.getWidth(), getPacy() + pacBitmap.getHeight());
+
+            if (!getCoins().get(i).isCollected() && Rect.intersects(coin,pacman)) {
                 getCoins().get(i).handleCollection();
                 points++;
             }

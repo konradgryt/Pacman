@@ -17,10 +17,7 @@ public class MainActivity extends AppCompatActivity {
     //reference to the game class.
     Game game;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //saying we want the game to run in one mode only
+    private void setupGame() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
@@ -31,9 +28,6 @@ public class MainActivity extends AppCompatActivity {
         game.setGameView(gameView);
         gameView.setGame(game);
         game.newGame();
-
-//        Button buttonNewGame = findViewById(R.id.action_newGame);
-//        buttonNewGame.setOnClickListener((v) -> game.newGame());
 
         Button buttonUp = findViewById(R.id.moveUp);
         buttonUp.setOnClickListener((v) -> game.changeDirection(Direction.UP));
@@ -46,6 +40,12 @@ public class MainActivity extends AppCompatActivity {
 
         Button buttonLeft = findViewById(R.id.moveLeft);
         buttonLeft.setOnClickListener((v) -> game.changeDirection(Direction.LEFT));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setupGame();
     }
 
     @Override
@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"settings clicked",Toast.LENGTH_LONG).show();
             return true;
         } else if (id == R.id.action_newGame) {
+            setupGame();
             Toast.makeText(this,"New Game clicked",Toast.LENGTH_LONG).show();
             return true;
         }
