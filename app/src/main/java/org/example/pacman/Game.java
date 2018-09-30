@@ -3,6 +3,9 @@ package org.example.pacman;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.Log;
 import android.widget.TextView;
 import android.graphics.Rect;
@@ -16,6 +19,7 @@ import java.util.ArrayList;
 
 public class Game {
 
+    int h,w; //used for storing our height and width of the view
     private boolean coinsInitializedFlag = false;
     private boolean wallsInitializedFlag = false;
 
@@ -37,17 +41,16 @@ public class Game {
     private TextView pointsView;
     private int pacx, pacy;
     private  int enemyx, enemyy;
-    //the list of goldcoins - initially empty
-    private ArrayList<GoldCoin> coins = new ArrayList<>();
 
-    private ArrayList<GoldCoin> walls = new ArrayList<>();
+    //STATIC OBJECTS
+    private ArrayList<StaticObject> staticObjects = new ArrayList<>();
 
     //a reference to the gameview
     private GameView gameView;
-    private int h,w; //height and width of screen
 
     public Game(Context context, TextView view)
     {
+        this.staticObjects = new ArrayList<>();
         this.context = context;
         this.pointsView = view;
 
@@ -62,6 +65,42 @@ public class Game {
         this.gameView = view;
     }
 
+    public void initializeGameObjects(Canvas canvas, int w, int h) {
+        setSize(h,w);
+        canvas.drawColor(Color.WHITE);
+        Paint paint = new Paint();
+        canvas.drawBitmap(getPacBitmap(), getPacx(),getPacy(), paint);
+        canvas.drawBitmap(getEnemyBitmap(), getEnemyx(),getEnemyy(), paint);
+        initializeStaticObjects();
+        doCollisionCheck();
+        ArrayList<StaticObject> so = this.staticObjects;
+        for (int i = 0; i < so.size(); i++) {
+            if (!so.get(i).isCollected()) {
+                canvas.drawBitmap(so.get(i).getBitmap(), so.get(i).getX(), so.get(i).getY(), paint);
+            }
+        }
+        updatePoints();
+    }
+
+    public void initializeStaticObjects()
+    {
+        if (!coinsInitializedFlag) {
+            for (int i = 0; i < 10; i++) {
+                staticObjects.add(new StaticObject(random(w), random(h), coinBitmap));
+            }
+            coinsInitializedFlag = true;
+        }
+
+        if (!wallsInitializedFlag) {
+            staticObjects.add(new StaticObject(0, 0, wallBitmap));
+            staticObjects.add(new StaticObject(80, 0,wallBitmap));
+            staticObjects.add(new StaticObject(160, 0,wallBitmap));
+            staticObjects.add(new StaticObject(0,  80,wallBitmap));
+            staticObjects.add(new StaticObject(80, 80,wallBitmap));
+            wallsInitializedFlag = true;
+        }
+    }
+
     public void death() {
         thread.interrupt();
         enemyThread.interrupt();
@@ -70,6 +109,7 @@ public class Game {
 
     public void newGame()
     {
+        staticObjects  = new ArrayList<>();
         thread = new Thread(new InputThread());
         enemyThread = new Thread(new EnemyThread());
         thread.start();
@@ -81,7 +121,6 @@ public class Game {
         enemyx = 800;
         enemyy = 0;
         direction = Direction.IDLE;
-        coins = new ArrayList<>();
         points = 0;
         pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
         gameView.invalidate();
@@ -97,29 +136,6 @@ public class Game {
 
         int  n = rand.nextInt(x);
         return n;
-    }
-
-    public void initializeCoins(int count, int x, int y)
-    {
-
-        if (!coinsInitializedFlag) {
-            for (int i = 0; i < count; i++) {
-                coins.add(new GoldCoin(random(x), random(y)));
-            }
-            coinsInitializedFlag = true;
-        }
-    }
-
-    public void initializeWalls()
-    {
-        if (!wallsInitializedFlag) {
-                walls.add(new GoldCoin(0, 0));
-                walls.add(new GoldCoin(80, 0));
-                walls.add(new GoldCoin(160, 0));
-                walls.add(new GoldCoin(0,  80));
-                walls.add(new GoldCoin(80, 80));
-            wallsInitializedFlag = true;
-        }
     }
 
     public void setSize(int h, int w)
@@ -140,20 +156,19 @@ public class Game {
         if (Rect.intersects(enemy,pacman)) {
             death();
         }
-        for (int i = 0; i < getWalls().size(); i++) {
-            Rect wall = new Rect(getWalls().get(i).getCoinx(), getWalls().get(i).getCoiny(), getWalls().get(i).getCoinx() + coinBitmap.getWidth(), getWalls().get(i).getCoiny() + coinBitmap.getHeight());
-            if (Rect.intersects(wall,pacman)) {
-                direction = Direction.IDLE;
-            }
-        }
-        for (int i = 0; i < getCoins().size(); i++) {
-            Rect coin = new Rect(getCoins().get(i).getCoinx(), getCoins().get(i).getCoiny(), getCoins().get(i).getCoinx() + coinBitmap.getWidth(), getCoins().get(i).getCoiny() + coinBitmap.getHeight());
 
-            if (!getCoins().get(i).isCollected() && Rect.intersects(coin,pacman)) {
-                getCoins().get(i).handleCollection();
+
+        ArrayList<StaticObject> so = this.staticObjects;
+        for (int i = 0; i < so.size(); i++) {
+            Rect wall = new Rect(so.get(i).getX(), so.get(i).getY(), so.get(i).getX() + so.get(i).getBitmap().getWidth(), so.get(i).getY() + so.get(i).getBitmap().getHeight());
+            if (Rect.intersects(wall ,pacman)) {
+             //   direction = Direction.IDLE;
+            }
+            if (!so.get(i).isCollected() && Rect.intersects(wall,pacman)) {
+                so.get(i).setCollected(true);
                 points++;
             }
-         }
+        }
     }
 
     public int getEnemyx()
@@ -182,16 +197,6 @@ public class Game {
         return points;
     }
 
-    public ArrayList<GoldCoin> getCoins()
-    {
-        return coins;
-    }
-
-    public ArrayList<GoldCoin> getWalls()
-    {
-        return walls;
-    }
-
     public Bitmap getPacBitmap()
     {
         return pacBitmap;
@@ -199,14 +204,6 @@ public class Game {
     public Bitmap getEnemyBitmap()
     {
         return enemyBitmap;
-    }
-    public Bitmap getCoinBitmap()
-    {
-        return coinBitmap;
-    }
-    public Bitmap getWallBitmap()
-    {
-        return wallBitmap;
     }
 
     private class InputThread extends Thread {
