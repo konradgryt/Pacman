@@ -48,7 +48,7 @@ public class GameObject {
     }
 
     public void handleCollision() {
-       // Game.direction = Direction.IDLE;
+      // Player.direction = Direction.IDLE;
     }
 
     public boolean isCollected() {

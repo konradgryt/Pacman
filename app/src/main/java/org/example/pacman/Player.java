@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 public class Player extends GameObject {
-    Direction direction = Direction.IDLE;
+    static Direction direction = Direction.IDLE;
     int speed = 1;
 
     public Player(int x, int y, Bitmap bitmap) {
@@ -27,6 +27,9 @@ public class Player extends GameObject {
         Log.d("direction",direction.toString());
         Log.d("pacy",Integer.toString(getY()));
         Log.d("pacx",Integer.toString(getX()));
+
+        Log.d("w",Integer.toString(Game.w));
+        Log.d("h",Integer.toString(Game.h));
     }
 
     public void setDirection(Direction direction) {

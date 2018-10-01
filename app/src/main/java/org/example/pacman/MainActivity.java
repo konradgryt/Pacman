@@ -13,23 +13,27 @@ import android.widget.Button;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 public class MainActivity extends AppCompatActivity {
     GameView gameView;
     Game game;
     Timer mainLoop;
+    CountDownTimer countDownTimer;
     Handler handler;
-    boolean paused = false;
+    Button pauseButton;
+    TextView textView;
+    boolean paused;
     boolean scheduled = false;
+    long timeRemaining;
 
     public void setupGame() {
+        timeRemaining = 60000;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
-
-        TextView textView = findViewById(R.id.points);
-        Button pauseButton = findViewById(R.id.pause);
-
+        textView = findViewById(R.id.points);
+        pauseButton = findViewById(R.id.pause);
+        paused = false;
+        countDownTimer = null;
         game = new Game(this,textView);
         game.setGameView(gameView);
         gameView.setGame(game);
@@ -53,14 +57,29 @@ public class MainActivity extends AppCompatActivity {
                 game.player.setDirection((Direction.DOWN));
             }
         });
-        pauseButton.setOnClickListener((v) -> paused = (paused == true) ? false : true);
+        pauseButton.setOnClickListener((v) -> pauseButtonHandler());
         runTimers();
+    }
+
+    public void pauseButtonHandler() {
+        if (!paused) {
+            paused = true;
+            countDownTimer.cancel();
+            pauseButton.setText(String.format("Continue"));
+        } else {
+            paused = false;
+            runTimers();
+            pauseButton.setText(String.format("Pause"));
+
+        }
     }
 
     public void runTimers() {
         TextView timeView = findViewById(R.id.time);
-        new CountDownTimer(60000, 1000) {
+        countDownTimer = new CountDownTimer(timeRemaining, 1000) {
             public void onTick(long millisUntilFinished) {
+              if (!paused) {
+                    timeRemaining = millisUntilFinished;
                     timeView.setText(String.format("Time left: " + "%d", millisUntilFinished / 1000));
                     if (!scheduled) {
                         mainLoop = new Timer();
@@ -89,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                         }, 0, 30);
                         scheduled = true;
                     }
+                }
             }
 
             public void onFinish() {

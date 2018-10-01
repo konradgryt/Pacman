@@ -52,11 +52,20 @@ public class Game {
             staticObjects.add(new Collectable(random(w), random(h), BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold)));
         }
         Bitmap wallBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.wall);
-        staticObjects.add(new GameObject(0, 0, wallBitmap));
-        staticObjects.add(new GameObject(80, 0, wallBitmap));
-        staticObjects.add(new GameObject(160, 0, wallBitmap));
-        staticObjects.add(new GameObject(0, 80, wallBitmap));
-        staticObjects.add(new GameObject(80, 80, wallBitmap));
+        for (int i = 0; i < w; i+= 80) {
+            //left wall
+            staticObjects.add(new GameObject(0, i, wallBitmap));
+
+            //right wall
+            staticObjects.add(new GameObject(w - 180, i, wallBitmap));
+        }
+        for (int i = 0; i < h; i+= 80) {
+            //top wall
+            staticObjects.add(new GameObject(i, 0, wallBitmap));
+
+            //bottom wall
+            staticObjects.add(new GameObject(i, w, wallBitmap));
+        }
     }
 
     //Draws the things that are changing
