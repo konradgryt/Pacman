@@ -4,6 +4,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -17,7 +18,10 @@ public class MainActivity extends AppCompatActivity {
     GameView gameView;
     Game game;
     Timer mainLoop;
-    CountDownTimer countDownTimer;
+
+    public CountDownTimer countDownTimer;
+    boolean initialized = false;
+
     Handler handler;
     Button pauseButton;
     TextView textView;
@@ -27,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     long timeRemaining;
 
     public void setupGame() {
+        if (initialized) {
+            countDownTimer.cancel();
+        }
+        initialized = false;
         timeRemaining = 60000;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
@@ -35,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
         textView2 = findViewById(R.id.highscore);
         pauseButton = findViewById(R.id.pause);
         paused = false;
-        countDownTimer = null;
         game = new Game(this,textView, textView2);
         game.setGameView(gameView);
         gameView.setGame(game);
@@ -70,53 +77,58 @@ public class MainActivity extends AppCompatActivity {
             pauseButton.setText(String.format("Continue"));
         } else {
             paused = false;
+            initialized = false;
             runTimers();
             pauseButton.setText(String.format("Pause"));
-
         }
     }
 
     public void runTimers() {
         TextView timeView = findViewById(R.id.time);
-        countDownTimer = new CountDownTimer(timeRemaining, 1000) {
-            public void onTick(long millisUntilFinished) {
-              if (!paused) {
-                    timeRemaining = millisUntilFinished;
-                    timeView.setText(String.format("Time left: " + "%d", millisUntilFinished / 1000));
-                    if (!scheduled) {
-                        mainLoop = new Timer();
-                        handler = new Handler();
-                        //player
-                        mainLoop.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                if (!paused) {
-                                    game.updateMovingGameObjects();
-                                    gameView.invalidate();
+        if (!initialized) {
+            initialized = true;
+            countDownTimer = new CountDownTimer(timeRemaining, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    if (!paused) {
+                        timeRemaining = millisUntilFinished;
+                        Log.d("zzzt", Long.toString(timeRemaining));
+                        Log.d("zzzt2", Long.toString(millisUntilFinished));
+                        timeView.setText(String.format("Time left: " + "%d", timeRemaining / 1000));
+                        if (!scheduled) {
+                            mainLoop = new Timer();
+                            handler = new Handler();
+                            //player
+                            mainLoop.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if (!paused) {
+                                        game.updateMovingGameObjects();
+                                        gameView.invalidate();
+                                    }
                                 }
-                            }
 
-                        }, 0, 5);
-                        //bird
-                        mainLoop.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                if (!paused) {
-                                    game.enemy.updateTarget(game.player);
-                                    game.enemy.update();
-                                    gameView.invalidate();
+                            }, 0, 5);
+                            //bird
+                            mainLoop.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if (!paused) {
+                                        game.enemy.updateTarget(game.player);
+                                        game.enemy.update();
+                                        gameView.invalidate();
+                                    }
                                 }
-                            }
-                        }, 0, 50);
-                        scheduled = true;
+                            }, 0, 50);
+                            scheduled = true;
+                        }
                     }
                 }
-            }
 
-            public void onFinish() {
-                setupGame();
-            }
-        }.start();
+                public void onFinish() {
+                    setupGame();
+                }
+            }.start();
+        }
     }
 
     @Override
