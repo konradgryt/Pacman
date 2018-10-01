@@ -9,6 +9,8 @@ import android.graphics.Paint;
 import android.util.Log;
 import android.widget.TextView;
 import android.graphics.Rect;
+import android.widget.Toast;
+
 import java.util.Random;
 import java.util.ArrayList;
 
@@ -20,6 +22,9 @@ public class Game {
 
     public static int points = 0; //what points do we have
     public static int highScore = 0;
+    public static int level = 1;
+
+    public final int baseCoinCount = 5;
 
     //textview reference to points
     private TextView pointsView;
@@ -51,8 +56,8 @@ public class Game {
         Game.h = h;
         Game.w = w;
 
-        for (int i = 0; i < 10; i++) {
-            staticObjects.add(new Collectable(random(w), random(h), BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold)));
+        for (int i = 0; i < Game.level * baseCoinCount; i++) {
+            staticObjects.add(new Collectable(random(w / 2), random(h / 2), BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold)));
         }
         Bitmap wallBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.wall);
         for (int i = 0; i < w; i+= 80) {
@@ -93,8 +98,14 @@ public class Game {
     }
 
     public void death() {
-        Log.d("death","dead");
         context.setupGame();
+        Toast.makeText(context,"You died (on level " + Integer.toString(Game.level)+ ")",Toast.LENGTH_LONG).show();
+        level = 1;
+    }
+
+    public void win() {
+        context.setupGame();
+        Toast.makeText(context,"You advanced to level " + Integer.toString(Game.level),Toast.LENGTH_LONG).show();
     }
 
     public void newGame() {
@@ -108,7 +119,7 @@ public class Game {
     public int random(int x) {
         Random rand = new Random();
 
-        int n = rand.nextInt(x);
+        int n = rand.nextInt(x) + 100;
         return n;
     }
 
@@ -116,7 +127,12 @@ public class Game {
         Rect pacman = player.createRectangle();
         Rect enemy = this.enemy.createRectangle();
         if (Rect.intersects(enemy, pacman)) {
-            death();
+            if (Game.points >= baseCoinCount * level) {
+                Game.level++;
+                win();
+            } else {
+                death();
+            }
         }
         ArrayList<GameObject> so = this.staticObjects;
         for (int i = 0; i < so.size(); i++) {
@@ -124,10 +140,13 @@ public class Game {
             if (so.get(i) instanceof Collectable) {
                 if (!so.get(i).isCollected() && Rect.intersects(object, pacman)) {
                     so.get(i).handleCollision();
+                    if (Game.points >= baseCoinCount * level) {
+                        Toast.makeText(context,"Eat a bird to advance to level " + Integer.toString(Game.level +1 ) + "!",Toast.LENGTH_LONG).show();
+                    }
                 }
             } else {
                 if (Rect.intersects(object, pacman)) {
-                    so.get(i).handleCollision();
+              //      so.get(i).handleCollision();
                 }
             }
         }

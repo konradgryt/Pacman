@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                                     gameView.invalidate();
                                 }
                             }
-                        }, 0, 30);
+                        }, 0, 50);
                         scheduled = true;
                     }
                 }
