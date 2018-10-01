@@ -2,18 +2,23 @@ package org.example.pacman;
 
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity {
     GameView gameView;
     Game game;
+    Timer mainLoop;
+    Handler handler;
 
     public void setupGame() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -27,24 +32,62 @@ public class MainActivity extends AppCompatActivity {
         gameView.setGame(game);
         game.newGame();
 
-        Button buttonUp = findViewById(R.id.moveUp);
-        buttonUp.setOnClickListener((v) -> game.changeDirection(Direction.UP));
-
-        Button buttonRight = findViewById(R.id.moveRight);
-        buttonRight.setOnClickListener((v) -> game.changeDirection(Direction.RIGHT));
-
-        Button buttonDown = findViewById(R.id.moveDown);
-        buttonDown.setOnClickListener((v) -> game.changeDirection(Direction.DOWN));
-
-        Button buttonLeft = findViewById(R.id.moveLeft);
-        buttonLeft.setOnClickListener((v) -> game.changeDirection(Direction.LEFT));
+        gameView.setOnTouchListener(new OnSwipeTouchListener(this) {
+            public void onSwipeTop() {
+                game.player.setDirection((Direction.UP));
+            }
+            public void onSwipeRight() {
+                game.player.setDirection((Direction.RIGHT));
+            }
+            public void onSwipeLeft() {
+                game.player.setDirection((Direction.LEFT));
+            }
+            public void onSwipeBottom() {
+                game.player.setDirection((Direction.DOWN));
+            }
+        });
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        mainLoop = new Timer();
+        handler = new Handler();
+        mainLoop.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                TimerMethod();
+            }
+
+        }, 0, 8);
         setupGame();
+        super.onCreate(savedInstanceState);
     }
+
+    private void TimerMethod()
+    {
+        this.runOnUiThread(Timer_Tick);
+        this.runOnUiThread(EnemyTimer);
+    }
+
+
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+        Log.d("Lil","runnin");
+        game.updateMovingGameObjects();
+        gameView.invalidate();
+        }
+    };
+
+    private Runnable EnemyTimer = new Runnable() {
+        public void run() {
+            game.enemy.updateTarget(game.player);
+            game.enemy.update();
+            gameView.invalidate();
+            handler.postDelayed(EnemyTimer,8000);
+            Log.d("Lil","enemy");
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

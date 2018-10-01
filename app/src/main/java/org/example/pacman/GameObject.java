@@ -5,6 +5,7 @@ import android.graphics.Rect;
 
 public class GameObject {
 
+    private int speed = 0;
     private int x, y;
     private Bitmap bitmap;
 
@@ -18,17 +19,26 @@ public class GameObject {
         return x;
     }
 
-    public void setX(int x) {
-        this.x = x;
+    public void moveRight(int speed) {
+        this.x++;
+    }
+
+    public void moveLeft(int speed) {
+        this.x--;
+    }
+
+    public void moveUp(int speed) {
+        this.y--;
+    }
+
+    public void moveDown(int speed) {
+        this.y++;
     }
 
     public int getY() {
         return y;
     }
 
-    public void setY(int y) {
-        this.y = y;
-    }
 
     public Bitmap getBitmap() {
         return bitmap;
@@ -39,7 +49,7 @@ public class GameObject {
     }
 
     public void handleCollision() {
-        Game.direction = Direction.IDLE;
+       // Game.direction = Direction.IDLE;
     }
 
     public boolean isCollected() {
@@ -49,5 +59,9 @@ public class GameObject {
     public Rect createRectangle() {
             Rect rect = new Rect(getX(), getY(), getX() + bitmap.getWidth(), getY() + bitmap.getHeight());
         return rect;
+    }
+
+    public void update() {
+
     }
 }
