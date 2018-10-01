@@ -5,7 +5,7 @@ import android.util.Log;
 
 public class Player extends GameObject {
     Direction direction = Direction.IDLE;
-    int speed = 10;
+    int speed = 1;
 
     public Player(int x, int y, Bitmap bitmap) {
         super(x, y, bitmap);

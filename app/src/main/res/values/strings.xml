@@ -2,6 +2,7 @@
     <string name="app_name">Pacman</string>
     <string name="points">Points:</string>
     <string name="time">Time left:</string>
+    <string name="pause">Pause</string>
     <string name="action_settings">Settings</string>
     <string name="newgame">New Game</string>
 </resources>

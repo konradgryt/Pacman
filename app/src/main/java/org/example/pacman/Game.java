@@ -32,7 +32,7 @@ public class Game {
     private GameView gameView;
 
     public Game(MainActivity context, TextView view) {
-        player = new Player(80, 1300, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
+        player = new Player(80, 1100, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
         enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
         this.staticObjects = new ArrayList<>();
         this.context = context;

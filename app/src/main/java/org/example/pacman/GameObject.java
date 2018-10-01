@@ -5,7 +5,6 @@ import android.graphics.Rect;
 
 public class GameObject {
 
-    private int speed = 0;
     private int x, y;
     private Bitmap bitmap;
 
@@ -20,19 +19,19 @@ public class GameObject {
     }
 
     public void moveRight(int speed) {
-        this.x++;
+        this.x+= speed;
     }
 
     public void moveLeft(int speed) {
-        this.x--;
+        this.x-=speed;
     }
 
     public void moveUp(int speed) {
-        this.y--;
+        this.y-=speed;
     }
 
     public void moveDown(int speed) {
-        this.y++;
+        this.y+=speed;
     }
 
     public int getY() {

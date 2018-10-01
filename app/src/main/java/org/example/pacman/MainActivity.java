@@ -8,9 +8,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.util.Log;
 import android.os.CountDownTimer;
-
+import android.widget.Button;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -20,32 +19,16 @@ public class MainActivity extends AppCompatActivity {
     Game game;
     Timer mainLoop;
     Handler handler;
+    boolean paused = false;
+    boolean scheduled = false;
 
     public void setupGame() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
+
         TextView textView = findViewById(R.id.points);
-        TextView timeView = findViewById(R.id.time);
-        new CountDownTimer(60000, 1000) {
-            public void onTick(long millisUntilFinished) {
-                timeView.setText(String.format("Time left: " + "%d", millisUntilFinished / 1000));
-            }
-
-            public void onFinish() {
-                timeView.setText("Rip");
-            }
-        }.start();
-
-        mainLoop = new Timer();
-        handler = new Handler();
-        mainLoop.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                TimerMethod();
-            }
-
-        }, 0, 8);
+        Button pauseButton = findViewById(R.id.pause);
 
         game = new Game(this,textView);
         game.setGameView(gameView);
@@ -53,50 +36,71 @@ public class MainActivity extends AppCompatActivity {
         game.newGame();
 
         gameView.setOnTouchListener(new OnSwipeTouchListener(this) {
+            @Override
             public void onSwipeTop() {
                 game.player.setDirection((Direction.UP));
             }
+            @Override
             public void onSwipeRight() {
                 game.player.setDirection((Direction.RIGHT));
             }
+            @Override
             public void onSwipeLeft() {
                 game.player.setDirection((Direction.LEFT));
             }
+            @Override
             public void onSwipeBottom() {
                 game.player.setDirection((Direction.DOWN));
             }
         });
+        pauseButton.setOnClickListener((v) -> paused = (paused == true) ? false : true);
+        runTimers();
     }
 
-    private void TimerMethod()
-    {
-        this.runOnUiThread(Timer_Tick);
-        this.runOnUiThread(EnemyTimer);
+    public void runTimers() {
+        TextView timeView = findViewById(R.id.time);
+        new CountDownTimer(60000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                    timeView.setText(String.format("Time left: " + "%d", millisUntilFinished / 1000));
+                    if (!scheduled) {
+                        mainLoop = new Timer();
+                        handler = new Handler();
+                        //player
+                        mainLoop.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                if (!paused) {
+                                    game.updateMovingGameObjects();
+                                    gameView.invalidate();
+                                }
+                            }
+
+                        }, 0, 5);
+                        //bird
+                        mainLoop.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                if (!paused) {
+                                    game.enemy.updateTarget(game.player);
+                                    game.enemy.update();
+                                    gameView.invalidate();
+                                }
+                            }
+                        }, 0, 30);
+                        scheduled = true;
+                    }
+            }
+
+            public void onFinish() {
+                setupGame();
+            }
+        }.start();
     }
-
-
-    private Runnable Timer_Tick = new Runnable() {
-        public void run() {
-            Log.d("Lil","runnin");
-            game.updateMovingGameObjects();
-            gameView.invalidate();
-        }
-    };
-
-    private Runnable EnemyTimer = new Runnable() {
-        public void run() {
-            game.enemy.updateTarget(game.player);
-            game.enemy.update();
-            gameView.invalidate();
-            handler.postDelayed(EnemyTimer,8000);
-            Log.d("Lil","enemy");
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setupGame();
         super.onCreate(savedInstanceState);
+        setupGame();
     }
 
     @Override
