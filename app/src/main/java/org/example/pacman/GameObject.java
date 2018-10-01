@@ -1,11 +1,12 @@
 package org.example.pacman;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 
 public class GameObject {
 
-    int x, y;
-    Bitmap bitmap;
+    private int x, y;
+    private Bitmap bitmap;
 
     public GameObject(int x, int y, Bitmap bitmap) {
         this.x = x;
@@ -35,5 +36,18 @@ public class GameObject {
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
+    }
+
+    public void handleCollision() {
+        Game.direction = Direction.IDLE;
+    }
+
+    public boolean isCollected() {
+        return false;
+    }
+
+    public Rect createRectangle() {
+            Rect rect = new Rect(getX(), getY(), getX() + bitmap.getWidth(), getY() + bitmap.getHeight());
+        return rect;
     }
 }

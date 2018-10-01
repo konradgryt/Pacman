@@ -12,52 +12,41 @@ import android.graphics.Rect;
 import java.util.Random;
 import java.util.ArrayList;
 
-/**
- *
- * This class should contain all your game logic
- */
-
 public class Game {
 
     int h,w; //used for storing our height and width of the view
-    private boolean coinsInitializedFlag = false;
-    private boolean wallsInitializedFlag = false;
 
-    private Direction direction;
+    public static Direction direction;
     public int pixels = 1;
 
     //context is a reference to the activity
-    private Context context;
-    private int points = 0; //how points do we have
+    private MainActivity context;
+    public static int points = 0; //how points do we have
 
     //bitmap of the pacman
-    private Bitmap pacBitmap;
     private Bitmap enemyBitmap;
-    private Bitmap coinBitmap;
-    private Bitmap wallBitmap;
     private Thread thread;
     private Thread enemyThread;
     //textview reference to points
     private TextView pointsView;
-    private int pacx, pacy;
-    private  int enemyx, enemyy;
+
+    //PLAYER
+    private Player player;
+
+    //ENEMY
+    private Enemy enemy;
 
     //STATIC OBJECTS
-    private ArrayList<StaticObject> staticObjects = new ArrayList<>();
+    private ArrayList<GameObject> staticObjects;
 
     //a reference to the gameview
     private GameView gameView;
 
-    public Game(Context context, TextView view)
+    public Game(MainActivity context, TextView view)
     {
         this.staticObjects = new ArrayList<>();
         this.context = context;
         this.pointsView = view;
-
-        pacBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman);
-        coinBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold);
-        enemyBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.bird);
-        wallBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.wall);
     }
 
     public void setGameView(GameView view)
@@ -65,15 +54,19 @@ public class Game {
         this.gameView = view;
     }
 
-    public void initializeGameObjects(Canvas canvas, int w, int h) {
+    public void initializeGame(int w, int h) {
         setSize(h,w);
+        initializeStaticObjects();
+        initializePlayer();
+    }
+
+    public void loop(Canvas canvas) {
         canvas.drawColor(Color.WHITE);
         Paint paint = new Paint();
-        canvas.drawBitmap(getPacBitmap(), getPacx(),getPacy(), paint);
-        canvas.drawBitmap(getEnemyBitmap(), getEnemyx(),getEnemyy(), paint);
-        initializeStaticObjects();
+        canvas.drawBitmap(player.getBitmap(), player.getX() , player.getX(), paint);
+        canvas.drawBitmap(enemy.getBitmap(), enemy.getX() , enemy.getX(), paint);
         doCollisionCheck();
-        ArrayList<StaticObject> so = this.staticObjects;
+        ArrayList<GameObject> so = this.staticObjects;
         for (int i = 0; i < so.size(); i++) {
             if (!so.get(i).isCollected()) {
                 canvas.drawBitmap(so.get(i).getBitmap(), so.get(i).getX(), so.get(i).getY(), paint);
@@ -82,45 +75,40 @@ public class Game {
         updatePoints();
     }
 
+    public void initializePlayer() {
+        player = new Player(400, 50, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
+        enemy = new Enemy(800, 0, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
+        direction = Direction.IDLE;
+        thread = new Thread(new InputThread());
+        enemyThread = new Thread(new EnemyThread());
+        thread.start();
+        enemyThread.start();
+
+    }
+
     public void initializeStaticObjects()
     {
-        if (!coinsInitializedFlag) {
-            for (int i = 0; i < 10; i++) {
-                staticObjects.add(new StaticObject(random(w), random(h), coinBitmap));
-            }
-            coinsInitializedFlag = true;
-        }
+     for (int i = 0; i < 10; i++) {
+            staticObjects.add(new Collectable(random(w), random(h), BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold)));
+     }
+        Bitmap wallBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.wall);
+        staticObjects.add(new GameObject(0, 0, wallBitmap));
+        staticObjects.add(new GameObject(80, 0,wallBitmap));
+        staticObjects.add(new GameObject(160, 0,wallBitmap));
+        staticObjects.add(new GameObject(0,  80,wallBitmap));
+        staticObjects.add(new GameObject(80, 80,wallBitmap));
 
-        if (!wallsInitializedFlag) {
-            staticObjects.add(new StaticObject(0, 0, wallBitmap));
-            staticObjects.add(new StaticObject(80, 0,wallBitmap));
-            staticObjects.add(new StaticObject(160, 0,wallBitmap));
-            staticObjects.add(new StaticObject(0,  80,wallBitmap));
-            staticObjects.add(new StaticObject(80, 80,wallBitmap));
-            wallsInitializedFlag = true;
-        }
     }
 
     public void death() {
         thread.interrupt();
         enemyThread.interrupt();
-        newGame();
+        context.setupGame();
     }
 
     public void newGame()
     {
         staticObjects  = new ArrayList<>();
-        thread = new Thread(new InputThread());
-        enemyThread = new Thread(new EnemyThread());
-        thread.start();
-        enemyThread.start();
-        coinsInitializedFlag = false;
-        wallsInitializedFlag = false;
-        pacx = 50;
-        pacy = 400;
-        enemyx = 800;
-        enemyy = 0;
-        direction = Direction.IDLE;
         points = 0;
         pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
         gameView.invalidate();
@@ -151,59 +139,26 @@ public class Game {
 
     public void doCollisionCheck()
     {
-        Rect pacman = new Rect(getPacx(), getPacy(), getPacx() + pacBitmap.getWidth(), getPacy() + pacBitmap.getHeight());
-        Rect enemy = new Rect(getEnemyx(), getEnemyy(), getEnemyx() + enemyBitmap.getWidth(), getEnemyy() + enemyBitmap.getHeight());
+        Rect pacman = player.createRectangle();
+        Rect enemy = this.enemy.createRectangle();
         if (Rect.intersects(enemy,pacman)) {
             death();
         }
 
-
-        ArrayList<StaticObject> so = this.staticObjects;
+        ArrayList<GameObject> so = this.staticObjects;
         for (int i = 0; i < so.size(); i++) {
-            Rect wall = new Rect(so.get(i).getX(), so.get(i).getY(), so.get(i).getX() + so.get(i).getBitmap().getWidth(), so.get(i).getY() + so.get(i).getBitmap().getHeight());
-            if (Rect.intersects(wall ,pacman)) {
-             //   direction = Direction.IDLE;
+            Rect object = so.get(i).createRectangle();
+            if (so.get(i) instanceof Collectable) {
+                if (!so.get(i).isCollected() && Rect.intersects(object,pacman)) {
+                    so.get(i).handleCollision();
+                }
+            } else {
+               if (Rect.intersects(object ,pacman)) {
+                    so.get(i).handleCollision();
+                }
             }
-            if (!so.get(i).isCollected() && Rect.intersects(wall,pacman)) {
-                so.get(i).setCollected(true);
-                points++;
-            }
+
         }
-    }
-
-    public int getEnemyx()
-    {
-        return enemyx;
-    }
-
-    public int getEnemyy()
-    {
-        return enemyy;
-    }
-
-
-    public int getPacx()
-    {
-        return pacx;
-    }
-
-    public int getPacy()
-    {
-        return pacy;
-    }
-
-    public int getPoints()
-    {
-        return points;
-    }
-
-    public Bitmap getPacBitmap()
-    {
-        return pacBitmap;
-    }
-    public Bitmap getEnemyBitmap()
-    {
-        return enemyBitmap;
     }
 
     private class InputThread extends Thread {
@@ -211,17 +166,17 @@ public class Game {
             try {
                 while (true) {
                     Thread.sleep(1);
-                    if (getPacy() - pixels > 0 && direction.equals(Direction.UP)) {
-                        pacy = pacy - pixels;
+                    if (player.getY() - pixels > 0 && direction.equals(Direction.UP)) {
+                        player.setY(player.getY() - pixels);
                     }
-                    else if (getPacx() + pixels + getPacBitmap().getWidth() < w && direction.equals(Direction.RIGHT)) {
-                        pacx = pacx + pixels;
+                    else if (player.getX()+ pixels + player.getBitmap().getWidth() < w && direction.equals(Direction.RIGHT)) {
+                        player.setX(player.getX() + pixels);
                     }
-                    else if (getPacy() + pixels + getPacBitmap().getHeight() < h && direction.equals(Direction.DOWN)) {
-                        pacy = pacy + pixels;
+                    else if (player.getY() + pixels + player.getBitmap().getHeight() < h && direction.equals(Direction.DOWN)) {
+                        player.setY(player.getY() + pixels);
                     }
-                    else if (getPacx() - pixels > 0 && direction.equals(Direction.LEFT)) {
-                        pacx = pacx - pixels;
+                    else if (player.getX() - pixels > 0 && direction.equals(Direction.LEFT)) {
+                        player.setX(player.getX() - pixels);
                     } else {
                         direction = Direction.IDLE;
                     }
@@ -236,19 +191,20 @@ public class Game {
     private class EnemyThread extends Thread {
         public void run() {
             try {
+
                 while (true) {
                     Thread.sleep(50);
-                    if (pacy < enemyy) {
-                        enemyy--;
+                    if (player.getY() < enemy.getY()) {
+                        enemy.setY( enemy.getY() - 1);
                     }
-                    if (pacy > enemyy) {
-                        enemyy++;
+                    if (player.getY() > enemy.getY()) {
+                        enemy.setY( enemy.getY() + 1);
                     }
-                    if (pacx < enemyx) {
-                        enemyx--;
+                    if (player.getX() < enemy.getX()) {
+                        enemy.setY( enemy.getX() - 1);
                     }
-                    if (pacx > enemyx) {
-                        enemyx++;
+                    if (player.getX() > enemy.getX()) {
+                        enemy.setX( enemy.getY() + 1);
                     }
                     gameView.invalidate();
                 }
