@@ -6,6 +6,7 @@ import android.util.Log;
 public class Enemy extends GameObject {
     Player target;
     int speed = 1;
+    Boolean escape = false;
 
     public Enemy(int x, int y, Bitmap bitmap) {
         super(x, y, bitmap);
@@ -14,20 +15,33 @@ public class Enemy extends GameObject {
     @Override
     public void update() {
         if (target.getY() < getY()) {
-           moveUp(speed);
+            if (!escape) {
+                moveUp(speed);
+            } else {
+                moveDown(speed);
+            }
         }
         if (target.getY() > getY()) {
-            moveDown(speed);
+            if (!escape) {
+                moveDown(speed);
+            } else {
+                moveUp(speed);
+            }
         }
         if (target.getX() < getX()) {
-            moveLeft(speed);
+            if (!escape) {
+                moveLeft(speed);
+            } else {
+                moveRight(speed);
+            }
         }
         if (target.getX() > getX()) {
-            moveRight(speed);
+            if (!escape) {
+                moveRight(speed);
+            } else {
+                moveLeft(speed);
+            }
         }
-
-        Log.d("birdy",Integer.toString(getY()));
-        Log.d("birdx",Integer.toString(getX()));
     }
 
     public void updateTarget(Player target) {

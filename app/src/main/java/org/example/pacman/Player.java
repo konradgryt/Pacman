@@ -1,7 +1,6 @@
 package org.example.pacman;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 public class Player extends GameObject {
     static Direction direction = Direction.IDLE;
@@ -13,23 +12,17 @@ public class Player extends GameObject {
 
     @Override
     public void update() {
-        if (getY() - speed > 0 && direction.equals(Direction.UP)) {
+        if (getY() - speed > 120 && direction.equals(Direction.UP)) {
             moveUp(speed);
-        } else if (getX() + speed + getBitmap().getWidth() < Game.w && direction.equals(Direction.RIGHT)) {
+        } else if (getX() + speed + 80 + getBitmap().getWidth() < Game.w && direction.equals(Direction.RIGHT)) {
             moveRight(speed);
-        } else if (getY() + speed + getBitmap().getHeight() < Game.h && direction.equals(Direction.DOWN)) {
+        } else if (getY() + speed + 80 + getBitmap().getHeight() < Game.h && direction.equals(Direction.DOWN)) {
             moveDown(speed);
-        } else if (getX() - speed > 0 && direction.equals(Direction.LEFT)) {
+        } else if (getX() - speed > 120 && direction.equals(Direction.LEFT)) {
             moveLeft(speed);
         } else {
-            direction = Direction.IDLE;
+           // direction = Direction.IDLE;
         }
-        Log.d("direction",direction.toString());
-        Log.d("pacy",Integer.toString(getY()));
-        Log.d("pacx",Integer.toString(getX()));
-
-        Log.d("w",Integer.toString(Game.w));
-        Log.d("h",Integer.toString(Game.h));
     }
 
     public void setDirection(Direction direction) {

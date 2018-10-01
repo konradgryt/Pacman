@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
             countDownTimer.cancel();
         }
         initialized = false;
-        timeRemaining = 60000;
+        timeRemaining = (timeRemaining >= 0) ? 70000 - Game.level * 10000 : 5000;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
@@ -91,8 +91,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onTick(long millisUntilFinished) {
                     if (!paused) {
                         timeRemaining = millisUntilFinished;
-                        Log.d("zzzt", Long.toString(timeRemaining));
-                        Log.d("zzzt2", Long.toString(millisUntilFinished));
                         timeView.setText(String.format("Time left: " + "%d", timeRemaining / 1000));
                         if (!scheduled) {
                             mainLoop = new Timer();
@@ -113,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     if (!paused) {
+                                        if (Game.points == Game.level * 5) {
+                                            game.enemy.escape = true;
+                                        } else {
+                                            game.enemy.escape = false;
+                                        }
                                         game.enemy.updateTarget(game.player);
                                         game.enemy.update();
                                         gameView.invalidate();

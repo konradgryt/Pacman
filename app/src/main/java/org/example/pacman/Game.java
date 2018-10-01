@@ -18,7 +18,7 @@ public class Game {
     public static int h, w; //used for storing our height and width of the view
 
     //context is a reference to the activity
-    private MainActivity context;
+    public MainActivity context;
 
     public static int points = 0; //what points do we have
     public static int highScore = 0;
@@ -39,7 +39,7 @@ public class Game {
     private GameView gameView;
 
     public Game(MainActivity context, TextView view, TextView view2) {
-        player = new Player(80, 1100, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
+        player = new Player(120, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
         enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
         this.staticObjects = new ArrayList<>();
         this.context = context;
@@ -62,17 +62,16 @@ public class Game {
         Bitmap wallBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.wall);
         for (int i = 0; i < w; i+= 80) {
             //left wall
-            staticObjects.add(new GameObject(0, i, wallBitmap));
+            staticObjects.add(new GameObject(0,  i, wallBitmap));
 
             //right wall
-            staticObjects.add(new GameObject(w - 180, i, wallBitmap));
-        }
-        for (int i = 0; i < h; i+= 80) {
+            staticObjects.add(new GameObject(w - 100, i, wallBitmap));
+
             //top wall
             staticObjects.add(new GameObject(i, 0, wallBitmap));
 
             //bottom wall
-            staticObjects.add(new GameObject(i, w, wallBitmap));
+            staticObjects.add(new GameObject(i , h - 100, wallBitmap));
         }
     }
 
@@ -94,13 +93,22 @@ public class Game {
     }
 
     public void updateMovingGameObjects() {
+        if (Player.direction == Direction.LEFT) {
+            player.setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.pacmanleft));
+        } else if (Player.direction == Direction.UP){
+            player.setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.pacmanup));
+        } else if (Player.direction == Direction.DOWN) {
+            player.setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.pacmandown));
+        } else {
+            player.setBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
+        }
         player.update();
     }
 
     public void death() {
-        context.setupGame();
-        Toast.makeText(context,"You died (on level " + Integer.toString(Game.level)+ ")",Toast.LENGTH_LONG).show();
         level = 1;
+        Toast.makeText(context,"You died (on level " + Integer.toString(Game.level)+ ")",Toast.LENGTH_LONG).show();
+        context.setupGame();
     }
 
     public void win() {
