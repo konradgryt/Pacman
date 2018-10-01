@@ -13,11 +13,11 @@ import java.util.Random;
 import java.util.ArrayList;
 
 public class Game {
-
     public static int h, w; //used for storing our height and width of the view
 
     //context is a reference to the activity
     private MainActivity context;
+
     public static int points = 0; //how points do we have
 
     //textview reference to points

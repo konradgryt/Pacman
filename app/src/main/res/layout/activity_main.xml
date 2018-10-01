@@ -4,15 +4,26 @@
     android:orientation="vertical"
     android:layout_height="match_parent"
     tools:context="org.example.pacman.MainActivity" >
+
     <TextView
         android:id="@+id/points"
-        android:textSize="24sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/points" />
+        android:layout_gravity="start"
+        android:text="@string/points"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="@string/time"
+        android:textSize="24sp" />
 
     <!-- Notice how the custom view is referenced here with
     a full package path-->
+
     <org.example.pacman.GameView
         android:id="@+id/gameView"
         android:layout_width="match_parent"

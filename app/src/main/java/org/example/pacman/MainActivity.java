@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
+import android.os.CountDownTimer;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,9 +24,28 @@ public class MainActivity extends AppCompatActivity {
     public void setupGame() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
-
         gameView =  findViewById(R.id.gameView);
         TextView textView = findViewById(R.id.points);
+        TextView timeView = findViewById(R.id.time);
+        new CountDownTimer(60000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                timeView.setText(String.format("Time left: " + "%d", millisUntilFinished / 1000));
+            }
+
+            public void onFinish() {
+                timeView.setText("Rip");
+            }
+        }.start();
+
+        mainLoop = new Timer();
+        handler = new Handler();
+        mainLoop.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                TimerMethod();
+            }
+
+        }, 0, 8);
 
         game = new Game(this,textView);
         game.setGameView(gameView);
@@ -48,22 +68,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        mainLoop = new Timer();
-        handler = new Handler();
-        mainLoop.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                TimerMethod();
-            }
-
-        }, 0, 8);
-        setupGame();
-        super.onCreate(savedInstanceState);
-    }
-
     private void TimerMethod()
     {
         this.runOnUiThread(Timer_Tick);
@@ -73,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Runnable Timer_Tick = new Runnable() {
         public void run() {
-        Log.d("Lil","runnin");
-        game.updateMovingGameObjects();
-        gameView.invalidate();
+            Log.d("Lil","runnin");
+            game.updateMovingGameObjects();
+            gameView.invalidate();
         }
     };
 
@@ -88,6 +92,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Lil","enemy");
         }
     };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        setupGame();
+        super.onCreate(savedInstanceState);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
