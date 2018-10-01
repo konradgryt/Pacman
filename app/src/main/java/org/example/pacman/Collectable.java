@@ -18,6 +18,9 @@ public class Collectable extends GameObject {
     @Override
     public void handleCollision() {
         Game.points++;
+        if (Game.points > Game.highScore) {
+            Game.highScore = Game.points;
+        }
         collected = true;
     }
 }

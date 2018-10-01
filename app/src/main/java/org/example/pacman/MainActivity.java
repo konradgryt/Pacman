@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     Handler handler;
     Button pauseButton;
     TextView textView;
+    TextView textView2;
     boolean paused;
     boolean scheduled = false;
     long timeRemaining;
@@ -31,10 +32,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
         textView = findViewById(R.id.points);
+        textView2 = findViewById(R.id.highscore);
         pauseButton = findViewById(R.id.pause);
         paused = false;
         countDownTimer = null;
-        game = new Game(this,textView);
+        game = new Game(this,textView, textView2);
         game.setGameView(gameView);
         gameView.setGame(game);
         game.newGame();

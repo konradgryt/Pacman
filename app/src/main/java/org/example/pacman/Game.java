@@ -18,10 +18,12 @@ public class Game {
     //context is a reference to the activity
     private MainActivity context;
 
-    public static int points = 0; //how points do we have
+    public static int points = 0; //what points do we have
+    public static int highScore = 0;
 
     //textview reference to points
     private TextView pointsView;
+    private TextView highScoreView;
 
     //game objects
     public Player player;
@@ -31,12 +33,13 @@ public class Game {
     //a reference to the gameview
     private GameView gameView;
 
-    public Game(MainActivity context, TextView view) {
+    public Game(MainActivity context, TextView view, TextView view2) {
         player = new Player(80, 1100, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
         enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
         this.staticObjects = new ArrayList<>();
         this.context = context;
         this.pointsView = view;
+        this.highScoreView = view2;
     }
 
     public void setGameView(GameView view) {
@@ -82,6 +85,7 @@ public class Game {
             }
         }
         pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
+        highScoreView.setText(String.format(context.getResources().getString(R.string.highscore) + "%d", highScore));
     }
 
     public void updateMovingGameObjects() {
