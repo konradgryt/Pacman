@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
             countDownTimer.cancel();
         }
         initialized = false;
-        timeRemaining = (timeRemaining >= 0) ? 70000 - Game.level * 10000 : 5000;
+        //timeRemaining = (timeRemaining >= 0) ? 70000 - Game.level * 10000 : 5000;
+        timeRemaining = 60000;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
