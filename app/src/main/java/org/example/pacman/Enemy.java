@@ -1,7 +1,6 @@
 package org.example.pacman;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 public class Enemy extends GameObject {
     Player target;

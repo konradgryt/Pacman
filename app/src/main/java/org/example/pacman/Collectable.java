@@ -3,7 +3,7 @@ package org.example.pacman;
 import android.graphics.Bitmap;
 
 public class Collectable extends GameObject {
-    boolean collected;
+    private boolean collected;
 
     public Collectable(int x, int y, Bitmap bitmap) {
         super(x, y, bitmap);
@@ -18,9 +18,6 @@ public class Collectable extends GameObject {
     @Override
     public void handleCollision() {
         Game.points++;
-        if (Game.points > Game.highScore) {
-            Game.highScore = Game.points;
-        }
         collected = true;
     }
 }

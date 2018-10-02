@@ -1,6 +1,7 @@
 package org.example.pacman;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -13,7 +14,7 @@ import android.widget.Toast;
 
 import java.util.Random;
 import java.util.ArrayList;
-
+import android.provider.Settings.Secure;
 public class Game {
     public static int h, w; //used for storing our height and width of the view
 
@@ -21,7 +22,6 @@ public class Game {
     public MainActivity context;
 
     public static int points = 0; //what points do we have
-    public static int highScore = 0;
     public static int level = 1;
 
     public final int baseCoinCount = 5;
@@ -88,8 +88,16 @@ public class Game {
                 canvas.drawBitmap(so.get(i).getBitmap(), so.get(i).getX(), so.get(i).getY(), paint);
             }
         }
+
+        SharedPreferences sharedpreferences = context.getSharedPreferences(context.android_id, Context.MODE_PRIVATE);
+        if (Game.points > sharedpreferences.getInt("highscore",  0)) {
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putInt("highscore", Game.points);
+            editor.apply();
+            editor.commit();
+        }
         pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
-        highScoreView.setText(String.format(context.getResources().getString(R.string.highscore) + "%d", highScore));
+        highScoreView.setText(String.format(context.getResources().getString(R.string.highscore) + "%d", sharedpreferences.getInt("highscore",0)));
     }
 
     public void updateMovingGameObjects() {
@@ -151,10 +159,6 @@ public class Game {
                     if (Game.points >= baseCoinCount * level) {
                         Toast.makeText(context,"Eat a bird to advance to level " + Integer.toString(Game.level +1 ) + "!",Toast.LENGTH_LONG).show();
                     }
-                }
-            } else {
-                if (Rect.intersects(object, pacman)) {
-              //      so.get(i).handleCollision();
                 }
             }
         }

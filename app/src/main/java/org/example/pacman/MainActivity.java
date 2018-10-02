@@ -4,7 +4,6 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -13,19 +12,24 @@ import android.os.CountDownTimer;
 import android.widget.Button;
 import java.util.Timer;
 import java.util.TimerTask;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.provider.Settings.Secure;
 
 public class MainActivity extends AppCompatActivity {
+
+    CountDownTimer countDownTimer;
     GameView gameView;
     Game game;
     Timer mainLoop;
-
-    public CountDownTimer countDownTimer;
-    boolean initialized = false;
-
     Handler handler;
     Button pauseButton;
     TextView textView;
     TextView textView2;
+
+    public static String android_id;
+
+    boolean initialized = false;
     boolean paused;
     boolean scheduled = false;
     long timeRemaining;
@@ -35,14 +39,20 @@ public class MainActivity extends AppCompatActivity {
             countDownTimer.cancel();
         }
         initialized = false;
+
         //timeRemaining = (timeRemaining >= 0) ? 70000 - Game.level * 10000 : 5000;
         timeRemaining = 60000;
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
         textView = findViewById(R.id.points);
         textView2 = findViewById(R.id.highscore);
         pauseButton = findViewById(R.id.pause);
+
+        SharedPreferences sharedpreferences = getSharedPreferences(android_id, Context.MODE_PRIVATE);
+        textView2.setText(String.format(getResources().getString(R.string.highscore) + "%d", sharedpreferences.getInt("highscore", 0)));
+
         paused = false;
         game = new Game(this,textView, textView2);
         game.setGameView(gameView);
@@ -69,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         });
         pauseButton.setOnClickListener((v) -> pauseButtonHandler());
         runTimers();
+
     }
 
     public void pauseButtonHandler() {
@@ -137,8 +148,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        android_id = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
         super.onCreate(savedInstanceState);
         setupGame();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferences sharedpreferences = getSharedPreferences(android_id, Context.MODE_PRIVATE);
+        if (Game.points > sharedpreferences.getInt("highscore",  0)) {
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putInt("highscore", Game.points);
+            editor.apply();
+            editor.commit();
+        }
     }
 
     @Override
