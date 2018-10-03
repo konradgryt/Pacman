@@ -17,7 +17,7 @@ public class Collectable extends GameObject {
 
     @Override
     public void handleCollision() {
-        Game.points++;
+        Game.points += 1;
         collected = true;
     }
 }

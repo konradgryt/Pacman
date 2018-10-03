@@ -6,6 +6,7 @@ public class Enemy extends GameObject {
     Player target;
     int speed = 1;
     Boolean escape = false;
+    private boolean eaten = false;
 
     public Enemy(int x, int y, Bitmap bitmap) {
         super(x, y, bitmap);
@@ -41,6 +42,16 @@ public class Enemy extends GameObject {
                 moveLeft(speed);
             }
         }
+    }
+
+    @Override
+    public boolean isCollected() {
+        return eaten;
+    }
+
+    @Override
+    public void handleCollision() {
+        eaten = true;
     }
 
     public void updateTarget(Player target) {

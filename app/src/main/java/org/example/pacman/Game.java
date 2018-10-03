@@ -33,6 +33,7 @@ public class Game {
     //game objects
     public Player player;
     public Enemy enemy;
+    public Enemy enemy2;
     private ArrayList<GameObject> staticObjects;
 
     //a reference to the gameview
@@ -41,6 +42,10 @@ public class Game {
     public Game(MainActivity context, TextView view, TextView view2) {
         player = new Player(120, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
         enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
+        enemy2 = new Enemy(700, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
+        if (level < 3) {
+            enemy2.handleCollision();
+        }
         this.staticObjects = new ArrayList<>();
         this.context = context;
         this.pointsView = view;
@@ -55,7 +60,6 @@ public class Game {
     public void initializeGame(int w, int h) {
         Game.h = h;
         Game.w = w;
-
         for (int i = 0; i < Game.level * baseCoinCount; i++) {
             staticObjects.add(new Collectable(random(w / 2), random(h / 2), BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold)));
         }
@@ -80,14 +84,19 @@ public class Game {
         canvas.drawColor(Color.WHITE);
         Paint paint = new Paint();
         canvas.drawBitmap(player.getBitmap(), player.getX(), player.getY(), paint);
-        canvas.drawBitmap(enemy.getBitmap(), enemy.getX(), enemy.getY(), paint);
-        doCollisionCheck();
+        if (!enemy.isCollected()) {
+            canvas.drawBitmap(enemy.getBitmap(), enemy.getX(), enemy.getY(), paint);
+        }
+        if (!enemy2.isCollected()) {
+            canvas.drawBitmap(enemy2.getBitmap(), enemy2.getX(), enemy2.getY(), paint);
+        }
         ArrayList<GameObject> so = this.staticObjects;
         for (int i = 0; i < so.size(); i++) {
             if (!so.get(i).isCollected()) {
                 canvas.drawBitmap(so.get(i).getBitmap(), so.get(i).getX(), so.get(i).getY(), paint);
             }
         }
+        doCollisionCheck();
 
         SharedPreferences sharedpreferences = context.getSharedPreferences(context.android_id, Context.MODE_PRIVATE);
         if (Game.points > sharedpreferences.getInt("highscore",  0)) {
@@ -115,6 +124,7 @@ public class Game {
 
     public void death() {
         level = 1;
+        points = 0;
         Toast.makeText(context,"You died (on level " + Integer.toString(Game.level)+ ")",Toast.LENGTH_LONG).show();
         context.setupGame();
     }
@@ -126,7 +136,6 @@ public class Game {
 
     public void newGame() {
         staticObjects = new ArrayList<>();
-        points = 0;
         pointsView.setText(String.format(context.getResources().getString(R.string.points) + "%d", points));
         gameView.invalidate();
     }
@@ -139,15 +148,44 @@ public class Game {
         return n;
     }
 
+    public boolean allCoinsCollected() {
+        boolean everythingCollected = true;
+        for (GameObject c: this.staticObjects){
+            if (c instanceof Collectable && !c.isCollected()) {
+                everythingCollected = false;
+            }
+        }
+        return everythingCollected;
+    }
+
+    public boolean allEnemiesEaten() {
+        return enemy.isCollected() && enemy2.isCollected();
+    }
+
     public void doCollisionCheck() {
         Rect pacman = player.createRectangle();
-        Rect enemy = this.enemy.createRectangle();
-        if (Rect.intersects(enemy, pacman)) {
-            if (Game.points >= baseCoinCount * level) {
+        Rect enemyRectangle = enemy.createRectangle();
+        if (Rect.intersects(enemyRectangle, pacman)) {
+            if (allCoinsCollected() && allEnemiesEaten()) {
                 Game.level++;
                 win();
+            } else if (allCoinsCollected()){
+                enemy.handleCollision();
             } else {
                 death();
+            }
+        }
+        if ( level >= 3) {
+            Rect enemy2Rectangle = enemy2.createRectangle();
+            if (Rect.intersects(enemy2Rectangle, pacman)) {
+                if (allCoinsCollected() && allEnemiesEaten()) {
+                    Game.level++;
+                    win();
+                } else if (allCoinsCollected()) {
+                    enemy2.handleCollision();
+                } else {
+                    death();
+                }
             }
         }
         ArrayList<GameObject> so = this.staticObjects;
@@ -156,8 +194,8 @@ public class Game {
             if (so.get(i) instanceof Collectable) {
                 if (!so.get(i).isCollected() && Rect.intersects(object, pacman)) {
                     so.get(i).handleCollision();
-                    if (Game.points >= baseCoinCount * level) {
-                        Toast.makeText(context,"Eat a bird to advance to level " + Integer.toString(Game.level +1 ) + "!",Toast.LENGTH_LONG).show();
+                    if (allCoinsCollected()) {
+                        Toast.makeText(context,"Eat all birds to advance to level " + Integer.toString(Game.level +1 ) + "!",Toast.LENGTH_LONG).show();
                     }
                 }
             }

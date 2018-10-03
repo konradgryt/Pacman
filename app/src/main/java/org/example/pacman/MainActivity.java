@@ -117,23 +117,30 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
 
-                            }, 0, 5);
+                            }, 0, 3);
                             //bird
                             mainLoop.schedule(new TimerTask() {
                                 @Override
                                 public void run() {
                                     if (!paused) {
-                                        if (Game.points == Game.level * 5) {
-                                            game.enemy.escape = true;
-                                        } else {
-                                            game.enemy.escape = false;
-                                        }
+                                        game.enemy.escape = game.allCoinsCollected();
                                         game.enemy.updateTarget(game.player);
                                         game.enemy.update();
                                         gameView.invalidate();
                                     }
                                 }
-                            }, 0, 50);
+                            }, 0, 70);
+                            mainLoop.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if (!paused) {
+                                        game.enemy2.escape = game.allCoinsCollected();
+                                        game.enemy2.updateTarget(game.player);
+                                        game.enemy2.update();
+                                        gameView.invalidate();
+                                    }
+                                }
+                            }, 0, 30);
                             scheduled = true;
                         }
                     }
@@ -182,6 +189,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"settings clicked",Toast.LENGTH_LONG).show();
             return true;
         } else if (id == R.id.action_newGame) {
+            Game.points = 0;
+            Game.level = 1;
             setupGame();
             Toast.makeText(this,"New Game clicked",Toast.LENGTH_LONG).show();
             return true;
