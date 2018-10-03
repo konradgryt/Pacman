@@ -141,6 +141,17 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             }, 0, 30);
+                            mainLoop.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if (!paused) {
+                                        game.enemy3.escape = game.allCoinsCollected();
+                                        game.enemy3.updateTarget(game.player);
+                                        game.enemy3.update();
+                                        gameView.invalidate();
+                                    }
+                                }
+                            }, 0, 10);
                             scheduled = true;
                         }
                     }

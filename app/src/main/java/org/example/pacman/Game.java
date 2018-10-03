@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.graphics.Rect;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.util.Random;
 import java.util.ArrayList;
 import android.provider.Settings.Secure;
@@ -34,6 +35,7 @@ public class Game {
     public Player player;
     public Enemy enemy;
     public Enemy enemy2;
+    public Enemy enemy3;
     private ArrayList<GameObject> staticObjects;
 
     //a reference to the gameview
@@ -41,10 +43,14 @@ public class Game {
 
     public Game(MainActivity context, TextView view, TextView view2) {
         player = new Player(120, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
-        enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
-        enemy2 = new Enemy(700, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird));
+        enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird3));
+        enemy2 = new Enemy(700, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird2));
+        enemy3 = new Enemy(120, 120, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird4));
         if (level < 3) {
             enemy2.handleCollision();
+        }
+        if (level < 5) {
+            enemy3.handleCollision();
         }
         this.staticObjects = new ArrayList<>();
         this.context = context;
@@ -60,6 +66,7 @@ public class Game {
     public void initializeGame(int w, int h) {
         Game.h = h;
         Game.w = w;
+
         for (int i = 0; i < Game.level * baseCoinCount; i++) {
             staticObjects.add(new Collectable(random(w / 2), random(h / 2), BitmapFactory.decodeResource(context.getResources(), R.drawable.polishgold)));
         }
@@ -83,6 +90,12 @@ public class Game {
     public void loop(Canvas canvas) {
         canvas.drawColor(Color.WHITE);
         Paint paint = new Paint();
+        ArrayList<GameObject> so = this.staticObjects;
+        for (int i = 0; i < so.size(); i++) {
+            if (!so.get(i).isCollected()) {
+                canvas.drawBitmap(so.get(i).getBitmap(), so.get(i).getX(), so.get(i).getY(), paint);
+            }
+        }
         canvas.drawBitmap(player.getBitmap(), player.getX(), player.getY(), paint);
         if (!enemy.isCollected()) {
             canvas.drawBitmap(enemy.getBitmap(), enemy.getX(), enemy.getY(), paint);
@@ -90,12 +103,10 @@ public class Game {
         if (!enemy2.isCollected()) {
             canvas.drawBitmap(enemy2.getBitmap(), enemy2.getX(), enemy2.getY(), paint);
         }
-        ArrayList<GameObject> so = this.staticObjects;
-        for (int i = 0; i < so.size(); i++) {
-            if (!so.get(i).isCollected()) {
-                canvas.drawBitmap(so.get(i).getBitmap(), so.get(i).getX(), so.get(i).getY(), paint);
-            }
+        if (!enemy3.isCollected()) {
+            canvas.drawBitmap(enemy3.getBitmap(), enemy3.getX(), enemy3.getY(), paint);
         }
+
         doCollisionCheck();
 
         SharedPreferences sharedpreferences = context.getSharedPreferences(context.android_id, Context.MODE_PRIVATE);
@@ -159,7 +170,7 @@ public class Game {
     }
 
     public boolean allEnemiesEaten() {
-        return enemy.isCollected() && enemy2.isCollected();
+        return enemy.isCollected() && enemy2.isCollected() && enemy3.isCollected();
     }
 
     public void doCollisionCheck() {
@@ -183,6 +194,19 @@ public class Game {
                     win();
                 } else if (allCoinsCollected()) {
                     enemy2.handleCollision();
+                } else {
+                    death();
+                }
+            }
+        }
+        if ( level >= 5) {
+            Rect enemy3Rectangle = enemy3.createRectangle();
+            if (Rect.intersects(enemy3Rectangle, pacman)) {
+                if (allCoinsCollected() && allEnemiesEaten()) {
+                    Game.level++;
+                    win();
+                } else if (allCoinsCollected()) {
+                    enemy3.handleCollision();
                 } else {
                     death();
                 }
