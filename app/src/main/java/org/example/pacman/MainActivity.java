@@ -21,17 +21,19 @@ public class MainActivity extends AppCompatActivity {
     CountDownTimer countDownTimer;
     GameView gameView;
     Game game;
-    Timer mainLoop;
-    Handler handler;
     Button pauseButton;
     TextView textView;
     TextView textView2;
+
+    private Timer pacmanTimer;
+    private Timer enemy1Timer;
+    private Timer enemy2Timer;
+    private Timer enemy3Timer;
 
     public static String android_id;
 
     boolean initialized = false;
     boolean paused;
-    boolean scheduled = false;
     long timeRemaining;
 
     public void setupGame() {
@@ -39,10 +41,8 @@ public class MainActivity extends AppCompatActivity {
             countDownTimer.cancel();
         }
         initialized = false;
-
-        //timeRemaining = (timeRemaining >= 0) ? 70000 - Game.level * 10000 : 5000;
-        timeRemaining = 60000;
-
+        timeRemaining = (timeRemaining >= 0) ? 70000 - Game.level * 10000 : 5000;
+        paused = false;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         gameView =  findViewById(R.id.gameView);
@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedpreferences = getSharedPreferences(android_id, Context.MODE_PRIVATE);
         textView2.setText(String.format(getResources().getString(R.string.highscore) + "%d", sharedpreferences.getInt("highscore", 0)));
 
-        paused = false;
         game = new Game(this,textView, textView2);
         game.setGameView(gameView);
         gameView.setGame(game);
@@ -77,9 +76,9 @@ public class MainActivity extends AppCompatActivity {
                 game.player.setDirection((Direction.DOWN));
             }
         });
-        pauseButton.setOnClickListener((v) -> pauseButtonHandler());
-        runTimers();
 
+        pauseButton.setOnClickListener((v) -> pauseButtonHandler());
+        runCountdown();
     }
 
     public void pauseButtonHandler() {
@@ -90,12 +89,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             paused = false;
             initialized = false;
-            runTimers();
+            runCountdown();
             pauseButton.setText(String.format("Pause"));
         }
     }
 
-    public void runTimers() {
+    public void runCountdown() {
         TextView timeView = findViewById(R.id.time);
         if (!initialized) {
             initialized = true;
@@ -104,59 +103,8 @@ public class MainActivity extends AppCompatActivity {
                     if (!paused) {
                         timeRemaining = millisUntilFinished;
                         timeView.setText(String.format("Time left: " + "%d", timeRemaining / 1000));
-                        if (!scheduled) {
-                            mainLoop = new Timer();
-                            handler = new Handler();
-                            //player
-                            mainLoop.schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    if (!paused) {
-                                        game.updateMovingGameObjects();
-                                        gameView.invalidate();
-                                    }
-                                }
-
-                            }, 0, 3);
-                            //bird
-                            mainLoop.schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    if (!paused) {
-                                        game.enemy.escape = game.allCoinsCollected();
-                                        game.enemy.updateTarget(game.player);
-                                        game.enemy.update();
-                                        gameView.invalidate();
-                                    }
-                                }
-                            }, 0, 70);
-                            mainLoop.schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    if (!paused) {
-                                        game.enemy2.escape = game.allCoinsCollected();
-                                        game.enemy2.updateTarget(game.player);
-                                        game.enemy2.update();
-                                        gameView.invalidate();
-                                    }
-                                }
-                            }, 0, 30);
-                            mainLoop.schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    if (!paused) {
-                                        game.enemy3.escape = game.allCoinsCollected();
-                                        game.enemy3.updateTarget(game.player);
-                                        game.enemy3.update();
-                                        gameView.invalidate();
-                                    }
-                                }
-                            }, 0, 10);
-                            scheduled = true;
-                        }
                     }
                 }
-
                 public void onFinish() {
                     setupGame();
                 }
@@ -164,9 +112,80 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private Runnable playerMovement = new Runnable() {
+        public void run() {
+            if (!paused) {
+                game.updateMovingGameObjects();
+                gameView.invalidate();
+            }
+        }
+    };
+    private Runnable enemyMovement = new Runnable() {
+        public void run() {
+            if (!paused) {
+                game.enemy.escape = game.allCoinsCollected();
+                game.enemy.updateTarget(game.player);
+                game.enemy.update();
+                gameView.invalidate();
+            }
+        }
+    };
+    private Runnable enemy2Movement = new Runnable() {
+        public void run() {
+            if (!paused) {
+                game.enemy2.escape = game.allCoinsCollected();
+                game.enemy2.updateTarget(game.player);
+                game.enemy2.update();
+                gameView.invalidate();
+            }
+        }
+    };
+    private Runnable enemy3Movement = new Runnable() {
+        public void run() {
+            if (!paused) {
+                game.enemy3.escape = game.allCoinsCollected();
+                game.enemy3.updateTarget(game.player);
+                game.enemy3.update();
+                gameView.invalidate();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         android_id = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
+        pacmanTimer = new Timer();
+        pacmanTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(playerMovement);
+            }
+
+        }, 0, 3);
+        enemy1Timer = new Timer();
+        enemy1Timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(enemyMovement);
+            }
+
+        }, 0, 70);
+        enemy2Timer = new Timer();
+        enemy2Timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(enemy2Movement);
+            }
+
+        }, 0, 35);
+        enemy3Timer = new Timer();
+        enemy3Timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(enemy3Movement);
+            }
+
+        }, 0, 10);
         super.onCreate(savedInstanceState);
         setupGame();
     }

@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.widget.TextView;
 import android.graphics.Rect;
 import android.widget.Toast;
@@ -42,10 +41,10 @@ public class Game {
     private GameView gameView;
 
     public Game(MainActivity context, TextView view, TextView view2) {
-        player = new Player(120, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
+        player = new Player(140, 900, BitmapFactory.decodeResource(context.getResources(), R.drawable.pacman));
         enemy = new Enemy(700, 80, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird3));
-        enemy2 = new Enemy(700, 1000, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird2));
-        enemy3 = new Enemy(120, 120, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird4));
+        enemy2 = new Enemy(700, 900, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird2));
+        enemy3 = new Enemy(140, 140, BitmapFactory.decodeResource(context.getResources(), R.drawable.bird4));
         if (level < 3) {
             enemy2.handleCollision();
         }
